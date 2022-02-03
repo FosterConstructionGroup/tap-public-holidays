@@ -1,0 +1,9 @@
+{
+  "type": ["null", "object"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": ["string"] },
+    "date": { "type": ["string"], "format": "date" },
+    "name": { "type": ["string"] }
+  }
+}
