@@ -4,6 +4,7 @@ from singer import metadata
 from bs4 import BeautifulSoup
 from tap_public_holidays.utility import (
     get_data,
+    parse_date,
     format_date,
 )
 
@@ -14,18 +15,25 @@ def handle_holidays(config, schemas, state, mdata):
     start_year = config["start_year"]
     end_year = config["end_year"]
 
-    # TODO: range
-    # TODO: scrape
-
-    html = get_data(start_year)
-    soup = BeautifulSoup(html)
-
-    print(soup)
-
     holidays = []
 
-    # write_many(holidays, "holidays", schemas["holidays"], mdata, extraction_time)
+    for year in range(start_year, end_year + 1):
+        html = get_data(year)
+        soup = BeautifulSoup(html, "html.parser")
+        table = soup.find("table", class_="publicholidays")
 
+        for row in table.tbody.find_all("tr"):
+            cells = row.find_all("td")
+
+            try:
+                dt = parse_date(cells[0].text + " " + str(year), "%d %b %Y")
+            except:
+                continue
+
+            name = cells[2].text
+            holidays.append({"id": dt, "date": dt, "name": name})
+
+        write_many(holidays, "holidays", schemas["holidays"], mdata, extraction_time)
     return write_bookmark(state, "holidays", extraction_time)
 
 
